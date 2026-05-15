@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+
+  catalog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      APP_NAME: catalog-service
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8002
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: katalog_buku
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      IAE_API_KEY: "102022430028"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - iae-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: catalog-db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: katalog_buku
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - catalog-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - iae-network
+
+volumes:
+  catalog-db-data:
+
+networks:
+  iae-network:
+    external: true
+    name: tubes-iae-network

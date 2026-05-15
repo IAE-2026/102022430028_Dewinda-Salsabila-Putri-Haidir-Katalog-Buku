@@ -1,0 +1,6 @@
+﻿vendor
+node_modules
+.git
+.env
+storage/logs/*.log
+bootstrap/cache/*.php
