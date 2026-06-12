@@ -14,7 +14,12 @@ class Book extends Model
     protected $fillable = [
         'title',
         'author',
-        'stock'
+        'isbn',
+        'publisher',
+        'year',
+        'stock',
+        'available_stock',
+        'receipt_number'
     ];
 
     protected $casts = [
