@@ -12,7 +12,11 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('author');
+            $table->string('isbn')->unique();
+            $table->string('publisher');
+            $table->integer('year');
             $table->integer('stock');
+            $table->integer('available_stock');
             $table->timestamps();
 });
     }

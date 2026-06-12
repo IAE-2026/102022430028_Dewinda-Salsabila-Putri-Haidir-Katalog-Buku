@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Daftarkan alias middleware
         $middleware->alias([
             'iae.key' => \App\Http\Middleware\VerifyIAEKey::class,
+            'jwt.auth' => \App\Http\Middleware\VerifyJWT::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

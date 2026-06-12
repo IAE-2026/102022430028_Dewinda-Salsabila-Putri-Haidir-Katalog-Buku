@@ -4,146 +4,141 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
+use App\Services\SSOService;
+use App\Services\SOAPAuditService;
+use App\Services\RabbitMQPublisherService;
 use Illuminate\Http\Request;
-use OpenApi\Attributes as OA;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
-    #[OA\Get(
-        path: "/api/v1/books",
-        summary: "Get all books",
-        tags: ["Books"],
-        security: [["ApiKeyAuth" => []]],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Books retrieved successfully"
-            )
-        ]
-    )]
-    public function index()
+    protected SSOService $ssoService;
+    protected SOAPAuditService $soapService;
+    protected RabbitMQPublisherService $mqService;
+
+    public function __construct(
+        SSOService $ssoService,
+        SOAPAuditService $soapService,
+        RabbitMQPublisherService $mqService
+    ) {
+        $this->ssoService  = $ssoService;
+        $this->soapService = $soapService;
+        $this->mqService   = $mqService;
+    }
+
+    /**
+     * GET /api/v1/books
+     */
+    public function index(): JsonResponse
     {
         $books = Book::all();
 
         return response()->json([
-            "status" => "success",
-            "message" => "Books retrieved successfully",
-            "data" => $books,
-            "meta" => [
-                "service_name" => "Katalog-Service",
-                "api_version" => "v1"
-            ]
-        ]);
+            'status'  => 'success',
+            'message' => 'Data buku berhasil diambil.',
+            'data'    => $books,
+            'meta'    => [
+                'service_name' => 'catalog-service',
+                'api_version'  => 'v1',
+                'total'        => $books->count(),
+            ],
+        ], 200);
     }
 
-    #[OA\Get(
-        path: "/api/v1/books/{id}",
-        summary: "Get book by ID",
-        tags: ["Books"],
-        security: [["ApiKeyAuth" => []]],
-
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                description: "ID buku",
-                in: "path",
-                required: true,
-                schema: new OA\Schema(
-                    type: "integer"
-                )
-            )
-        ],
-
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Book retrieved successfully"
-            ),
-
-            new OA\Response(
-                response: 404,
-                description: "Book not found"
-            )
-        ]
-    )]
-    public function show($id)
+    /**
+     * GET /api/v1/books/{id}
+     */
+    public function show(int $id): JsonResponse
     {
         $book = Book::find($id);
 
         if (!$book) {
             return response()->json([
-                "status" => "error",
-                "message" => "Book not found",
-                "errors" => null
+                'status'  => 'error',
+                'message' => "Buku dengan ID {$id} tidak ditemukan.",
+                'errors'  => null,
             ], 404);
         }
 
         return response()->json([
-            "status" => "success",
-            "message" => "Book retrieved successfully",
-            "data" => $book,
-            "meta" => [
-                "service_name" => "Katalog-Service",
-                "api_version" => "v1"
-            ]
-        ]);
+            'status'  => 'success',
+            'message' => 'Detail buku berhasil diambil.',
+            'data'    => $book,
+            'meta'    => [
+                'service_name' => 'catalog-service',
+                'api_version'  => 'v1',
+            ],
+        ], 200);
     }
 
-    #[OA\Post(
-        path: "/api/v1/books",
-        summary: "Create new book",
-        tags: ["Books"],
-        security: [["ApiKeyAuth" => []]],
-
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ["title", "author", "stock"],
-                properties: [
-                    new OA\Property(
-                        property: "title",
-                        type: "string",
-                        example: "Example"
-                    ),
-                    new OA\Property(
-                        property: "author",
-                        type: "string",
-                        example: "Example"
-                    ),
-                    new OA\Property(
-                        property: "stock",
-                        type: "integer",
-                        example: 20
-                    )
-                ]
-            )
-        ),
-
-        responses: [
-            new OA\Response(
-                response: 201,
-                description: "Book created successfully"
-            )
-        ]
-    )]
-    public function store(Request $request)
+    /**
+     * POST /api/v1/books
+     */
+    public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-            'stock' => 'required|integer'
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'title'     => 'required|string|max:255',
+            'author'    => 'required|string|max:255',
+            'isbn'      => 'required|string|unique:books,isbn',
+            'publisher' => 'required|string|max:255',
+            'year'      => 'required|integer|min:1000|max:9999',
+            'stock'     => 'required|integer|min:0',
         ]);
 
-        $book = Book::create($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validasi gagal.',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // Simpan buku ke database
+        $book = Book::create([
+            'title'           => $request->title,
+            'author'          => $request->author,
+            'isbn'            => $request->isbn,
+            'publisher'       => $request->publisher,
+            'year'            => $request->year,
+            'stock'           => $request->stock,
+            'available_stock' => $request->stock,
+        ]);
+
+        try {
+            // Step 1: Login SSO → dapat JWT
+            $jwtToken = $this->ssoService->getToken();
+
+            // Step 2: Kirim SOAP audit → dapat ReceiptNumber
+            $receiptNumber = $this->soapService->sendAudit($book->toArray(), $jwtToken);
+
+            // Step 3: Simpan ReceiptNumber ke database
+            $book->update(['receipt_number' => $receiptNumber]);
+
+            // Step 4: Publish event ke RabbitMQ
+            $this->mqService->publish($book->toArray(), $receiptNumber, $jwtToken);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage() . ' (Line: ' . $e->getLine() . ' in ' . basename($e->getFile()) . ')',
+                'data'    => $book,
+                'meta'    => [
+                    'service_name' => 'catalog-service',
+                    'api_version'  => 'v1',
+                ],
+            ], 201);
+        }
 
         return response()->json([
-            "status" => "success",
-            "message" => "Book created successfully",
-            "data" => $book,
-            "meta" => [
-                "service_name" => "Katalog-Service",
-                "api_version" => "v1"
-            ]
+            'status'  => 'success',
+            'message' => 'Buku berhasil ditambahkan.',
+            'data'    => $book->fresh(),
+            'meta'    => [
+                'service_name' => 'catalog-service',
+                'api_version'  => 'v1',
+            ],
         ], 201);
     }
 }
