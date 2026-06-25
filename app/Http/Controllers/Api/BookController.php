@@ -43,7 +43,7 @@ class BookController extends Controller
                 'api_version'  => 'v1',
                 'total'        => $books->count(),
             ],
-        ], 200);
+        ], 200)->header('Content-Type', 'application/json');
     }
 
     /**
@@ -58,7 +58,7 @@ class BookController extends Controller
                 'status'  => 'error',
                 'message' => "Buku dengan ID {$id} tidak ditemukan.",
                 'errors'  => null,
-            ], 404);
+            ], 404)->header('Content-Type', 'application/json');
         }
 
         return response()->json([
@@ -69,7 +69,7 @@ class BookController extends Controller
                 'service_name' => 'catalog-service',
                 'api_version'  => 'v1',
             ],
-        ], 200);
+        ], 200)->header('Content-Type', 'application/json');
     }
 
     /**
@@ -92,7 +92,7 @@ class BookController extends Controller
                 'status'  => 'error',
                 'message' => 'Validasi gagal.',
                 'errors'  => $validator->errors(),
-            ], 422);
+            ], 422)->header('Content-Type', 'application/json');
         }
 
         // Simpan buku ke database
@@ -128,7 +128,7 @@ class BookController extends Controller
                     'service_name' => 'catalog-service',
                     'api_version'  => 'v1',
                 ],
-            ], 201);
+            ], 201)->header('Content-Type', 'application/json');
         }
 
         return response()->json([
@@ -139,6 +139,6 @@ class BookController extends Controller
                 'service_name' => 'catalog-service',
                 'api_version'  => 'v1',
             ],
-        ], 201);
+        ], 201)->header('Content-Type', 'application/json');
     }
 }

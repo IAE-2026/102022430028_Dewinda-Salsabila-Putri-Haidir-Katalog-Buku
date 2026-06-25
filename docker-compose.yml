@@ -21,7 +21,7 @@ services:
       DB_DATABASE: katalog_buku
       DB_USERNAME: root
       DB_PASSWORD: root
-      IAE_API_KEY: "KEY-MHS-44"
+      IAE_API_KEY: "102022430028"
       IAE_TEAM_ID: "TEAM-05"
       SSO_EMAIL: "warga05@ktp.iae.id"
       SSO_PASSWORD: "KtpDigital2026!"

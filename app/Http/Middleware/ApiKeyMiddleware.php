@@ -22,7 +22,7 @@ class ApiKeyMiddleware
                 'status'  => 'error',
                 'message' => 'Unauthorized: API Key tidak valid atau tidak ditemukan.',
                 'errors'  => null,
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         }
 
         return $next($request);

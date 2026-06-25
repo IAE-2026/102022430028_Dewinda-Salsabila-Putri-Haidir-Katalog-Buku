@@ -16,14 +16,14 @@ class VerifyIAEKey
     public function handle(Request $request, Closure $next): Response
     {
         $apiKey = $request->header('X-IAE-KEY');
-        $expectedKey = env('IAE_API_KEY', 'KEY-MHS-38');
+        $expectedKey = env('IAE_API_KEY', '102022430028');
 
         if ($apiKey !== $expectedKey) {
             return response()->json([
                 "status" => "error",
                 "message" => "Unauthorized",
                 "errors" => null
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         }
 
         return $next($request);

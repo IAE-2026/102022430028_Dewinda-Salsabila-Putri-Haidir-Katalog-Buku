@@ -1,123 +1,278 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-        "title": "Catalog Service API",
-        "description": "Service Katalog Buku - Tugas 2 IAE",
-        "version": "1.0.0"
-    },
-    "paths": {
-        "/api/v1/books": {
-            "get": {
-                "tags": [
-                    "Books"
-                ],
-                "summary": "Get all books",
-                "operationId": "ab6891af84b2f0a68a33cdfe8324ce98",
-                "responses": {
-                    "200": {
-                        "description": "Books retrieved successfully"
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Books"
-                ],
-                "summary": "Create new book",
-                "operationId": "a1d219764293fcc881a84c059760d6f6",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "title",
-                                    "author",
-                                    "stock"
-                                ],
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "Harry Potter"
-                                    },
-                                    "author": {
-                                        "type": "string",
-                                        "example": "J.K Rowling"
-                                    },
-                                    "stock": {
-                                        "type": "integer",
-                                        "example": 20
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Book created successfully"
-                    }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Catalog Service API",
+    "version": "1.0.0",
+    "description": "Service Katalog Buku - Tugas 2 IAE (102022430028 - Dewinda Salsabila Putri Haidir)"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8002",
+      "description": "Local Docker Server"
+    }
+  ],
+  "paths": {
+    "/api/v1/books": {
+      "get": {
+        "summary": "Mengambil semua data buku",
+        "tags": ["Books"],
+        "parameters": [
+          {
+            "name": "X-IAE-KEY",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "102022430028"
             }
-        },
-        "/api/v1/books/{id}": {
-            "get": {
-                "tags": [
-                    "Books"
-                ],
-                "summary": "Get book by ID",
-                "operationId": "df07027f12397ee981e78f8db169fffa",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID buku",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Book retrieved successfully"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer <jwt_token>"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data buku berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Data buku berhasil diambil." },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Book" }
                     },
-                    "404": {
-                        "description": "Book not found"
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "service_name": { "type": "string", "example": "catalog-service" },
+                        "api_version": { "type": "string", "example": "v1" },
+                        "total": { "type": "integer", "example": 5 }
+                      }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Menambahkan buku baru",
+        "tags": ["Books"],
+        "parameters": [
+          {
+            "name": "X-IAE-KEY",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "102022430028"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer <jwt_token>"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "author", "isbn", "publisher", "year", "stock"],
+                "properties": {
+                  "title": { "type": "string", "example": "Belajar Laravel" },
+                  "author": { "type": "string", "example": "John Doe" },
+                  "isbn": { "type": "string", "example": "978-602-1234-56-7" },
+                  "publisher": { "type": "string", "example": "Penerbit Informatika" },
+                  "year": { "type": "integer", "example": 2024 },
+                  "stock": { "type": "integer", "example": 10 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Buku berhasil ditambahkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Buku berhasil ditambahkan." },
+                    "data": { "$ref": "#/components/schemas/Book" },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "service_name": { "type": "string", "example": "catalog-service" },
+                        "api_version": { "type": "string", "example": "v1" }
+                      }
                     }
-                ]
+                  }
+                }
+              }
             }
-        }
-    },
-    "components": {
-        "securitySchemes": {
-            "ApiKeyAuth": {
-                "type": "apiKey",
-                "name": "X-IAE-KEY",
-                "in": "header"
+          },
+          "422": {
+            "description": "Validasi gagal",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
         }
+      }
     },
-    "tags": [
-        {
-            "name": "Books",
-            "description": "Books"
+    "/api/v1/books/{id}": {
+      "get": {
+        "summary": "Mengambil detail buku berdasarkan ID",
+        "tags": ["Books"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "X-IAE-KEY",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "102022430028"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer <jwt_token>"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail buku berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Detail buku berhasil diambil." },
+                    "data": { "$ref": "#/components/schemas/Book" },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "service_name": { "type": "string", "example": "catalog-service" },
+                        "api_version": { "type": "string", "example": "v1" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Buku tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
         }
-    ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "title": { "type": "string", "example": "Belajar Laravel" },
+          "author": { "type": "string", "example": "John Doe" },
+          "isbn": { "type": "string", "example": "978-602-1234-56-7" },
+          "publisher": { "type": "string", "example": "Penerbit Informatika" },
+          "year": { "type": "integer", "example": 2024 },
+          "stock": { "type": "integer", "example": 10 },
+          "available_stock": { "type": "integer", "example": 10 },
+          "receipt_number": { "type": "string", "nullable": true, "example": "RCP-12345" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "message": { "type": "string", "example": "Data retrieved successfully" },
+          "data": { "type": "object" },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "service_name": { "type": "string", "example": "catalog-service" },
+              "api_version": { "type": "string", "example": "v1" }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "error" },
+          "message": { "type": "string", "example": "Detail pesan kesalahan" },
+          "errors": { "type": "object", "nullable": true }
+        }
+      }
+    }
+  }
 }

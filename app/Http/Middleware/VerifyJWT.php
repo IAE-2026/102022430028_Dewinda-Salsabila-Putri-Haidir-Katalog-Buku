@@ -29,7 +29,7 @@ class VerifyJWT
             return response()->json([
                 'status' => 'error',
                 'message' => 'Token tidak disertakan',
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         }
 
         try {
@@ -81,13 +81,13 @@ class VerifyJWT
             return response()->json([
                 'status' => 'error',
                 'message' => 'Token sudah kadaluarsa',
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         } catch (\Exception $e) {
             Log::error('JWT Verification Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Token tidak valid: ' . $e->getMessage(),
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         }
 
         return $next($request);
