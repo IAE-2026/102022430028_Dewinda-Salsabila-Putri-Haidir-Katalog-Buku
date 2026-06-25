@@ -11,31 +11,16 @@
       "description": "Local Docker Server"
     }
   ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
   "paths": {
     "/api/v1/books": {
       "get": {
         "summary": "Mengambil semua data buku",
         "tags": ["Books"],
-        "parameters": [
-          {
-            "name": "X-IAE-KEY",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "102022430028"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "Bearer <jwt_token>"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Data buku berhasil diambil",
@@ -76,26 +61,6 @@
       "post": {
         "summary": "Menambahkan buku baru",
         "tags": ["Books"],
-        "parameters": [
-          {
-            "name": "X-IAE-KEY",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "102022430028"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "Bearer <jwt_token>"
-            }
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -169,24 +134,6 @@
             "schema": {
               "type": "integer"
             }
-          },
-          {
-            "name": "X-IAE-KEY",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "102022430028"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "example": "Bearer <jwt_token>"
-            }
           }
         ],
         "responses": {
@@ -233,6 +180,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IAE-KEY",
+        "description": "Masukkan NIM kamu (102022430028) disini"
+      }
+    },
     "schemas": {
       "Book": {
         "type": "object",
