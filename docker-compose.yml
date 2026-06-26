@@ -1,12 +1,9 @@
-version: "3.8"
-
 services:
 
   catalog-service:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: catalog-service
     restart: unless-stopped
     ports:
       - "8002:8000"
@@ -29,12 +26,9 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - iae-network
 
   mysql:
     image: mysql:8.0
-    container_name: catalog-db
     restart: unless-stopped
     ports:
       - "3307:3306"
@@ -48,13 +42,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - iae-network
 
 volumes:
   catalog-db-data:
-
-networks:
-  iae-network:
-    external: true
-    name: tubes-iae-network
