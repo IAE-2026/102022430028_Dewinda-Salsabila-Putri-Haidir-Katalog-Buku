@@ -1,4 +1,4 @@
-﻿FROM php:8.4-cli
+FROM php:8.4-cli
 
 RUN apt-get update && apt-get install -y \
     git curl zip unzip \
@@ -25,4 +25,4 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD bash -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"

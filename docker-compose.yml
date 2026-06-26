@@ -12,6 +12,7 @@ services:
       - "8002:8000"
     environment:
       APP_NAME: catalog-service
+      APP_KEY: "base64:rJWoC0kSefDin88c4a9PCM7OX92NJFX4uFfAlGA1dGM="
       APP_ENV: local
       APP_DEBUG: "true"
       APP_URL: http://localhost:8002
