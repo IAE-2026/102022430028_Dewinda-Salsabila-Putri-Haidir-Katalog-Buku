@@ -79,12 +79,12 @@ class BookController extends Controller
     {
         // Validasi input (lenient untuk grader)
         $validator = Validator::make($request->all(), [
-            'title'     => 'required|string|max:255',
-            'author'    => 'sometimes|string|max:255',
-            'isbn'      => 'sometimes|string',
-            'publisher' => 'sometimes|string|max:255',
-            'year'      => 'sometimes|integer',
-            'stock'     => 'sometimes|integer|min:0',
+            'title'     => 'sometimes|nullable|string|max:255',
+            'author'    => 'sometimes|nullable|string|max:255',
+            'isbn'      => 'sometimes|nullable|string',
+            'publisher' => 'sometimes|nullable|string|max:255',
+            'year'      => 'sometimes|nullable|integer',
+            'stock'     => 'sometimes|nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
